@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipe Connection Puzzle</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Pipe Connection Puzzle</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="gridSize">Grid Size:</label>
+                <input type="range" id="gridSize" min="4" max="30" value="8" step="1">
+                <span id="gridSizeValue">8x8</span>
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="hideUnpowered">
+                    Hide Unpowered Tiles
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="wrapEdges">
+                    Wrap Edges
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="extraLoops" checked>
+                    Extra Loops
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <button id="newGame">New Game</button>
+            </div>
+            
+            <div class="stats">
+                <span>Moves: <span id="moveCount">0</span></span>
+                <span>Powered: <span id="poweredCount">0</span>/<span id="totalCount">0</span></span>
+            </div>
+        </div>
+        
+        <div id="winMessage" class="win-message hidden">
+            <h2>🎉 You Won! 🎉</h2>
+            <p>All tiles are powered!</p>
+            <p>Moves: <span id="finalMoves">0</span></p>
+        </div>
+        
+        <div id="gameBoard"></div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
