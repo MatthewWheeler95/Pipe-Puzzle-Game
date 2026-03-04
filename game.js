@@ -15,10 +15,13 @@ class PipePuzzle {
         this.moveCount = 0;
         this.hideUnpowered = false;
         this.wrapEdges = false;
-        this.extraLoops = true;
+        this.extraLoops = false;
         this.gameWon = false;
+        this.lastClickedTile = null;
+        this.bestScores = {}; // Stores best scores per grid size
         
         this.initializeElements();
+        this.loadBestScores();
         this.attachEventListeners();
         
         // Try to load saved game if it wasn't won, otherwise start new game
@@ -44,6 +47,7 @@ class PipePuzzle {
         this.gridSizeInput = document.getElementById('gridSize');
         this.gridSizeValue = document.getElementById('gridSizeValue');
         this.moveCountEl = document.getElementById('moveCount');
+        this.bestScoreEl = document.getElementById('bestScore');
         this.poweredCountEl = document.getElementById('poweredCount');
         this.totalCountEl = document.getElementById('totalCount');
         this.hideUnpoweredCheckbox = document.getElementById('hideUnpowered');
@@ -78,9 +82,11 @@ class PipePuzzle {
     newGame() {
         this.moveCount = 0;
         this.gameWon = false;
+        this.lastClickedTile = null;
         this.winMessage.classList.add('hidden');
         this.generateSolvableGrid();
         this.updateDisplay();
+        this.updateBestScoreDisplay();
         this.saveGame();
     }
     
@@ -93,7 +99,8 @@ class PipePuzzle {
             hideUnpowered: this.hideUnpowered,
             wrapEdges: this.wrapEdges,
             extraLoops: this.extraLoops,
-            gameWon: this.gameWon
+            gameWon: this.gameWon,
+            lastClickedTile: this.lastClickedTile
         };
         
         localStorage.setItem('pipePuzzleSave', JSON.stringify(gameState));
@@ -118,6 +125,7 @@ class PipePuzzle {
             this.wrapEdges = gameState.wrapEdges;
             this.extraLoops = gameState.extraLoops;
             this.gameWon = gameState.gameWon || false;
+            this.lastClickedTile = gameState.lastClickedTile || null;
             
             // Update UI controls
             this.gridSizeInput.value = this.gridSize;
@@ -129,10 +137,31 @@ class PipePuzzle {
             this.winMessage.classList.add('hidden');
             this.calculatePower();
             this.updateDisplay();
+            this.updateBestScoreDisplay();
         } catch (error) {
             alert('Error loading saved game!');
             console.error(error);
         }
+    }
+    
+    loadBestScores() {
+        const savedScores = localStorage.getItem('pipePuzzleBestScores');
+        if (savedScores) {
+            try {
+                this.bestScores = JSON.parse(savedScores);
+            } catch (error) {
+                this.bestScores = {};
+            }
+        }
+    }
+    
+    saveBestScores() {
+        localStorage.setItem('pipePuzzleBestScores', JSON.stringify(this.bestScores));
+    }
+    
+    updateBestScoreDisplay() {
+        const bestScore = this.bestScores[this.gridSize];
+        this.bestScoreEl.textContent = bestScore !== undefined ? bestScore : '-';
     }
     
     generateSolvableGrid() {
@@ -397,7 +426,13 @@ class PipePuzzle {
     rotatePipe(row, col) {
         const tile = this.grid[row][col];
         tile.rotation = (tile.rotation + 90) % 360;
-        this.moveCount++;
+        
+        // Only increment move count if clicking a different tile than the last one
+        const currentTileKey = `${row},${col}`;
+        if (this.lastClickedTile !== currentTileKey) {
+            this.moveCount++;
+            this.lastClickedTile = currentTileKey;
+        }
         
         this.calculatePower();
         this.updateDisplay();
@@ -657,6 +692,15 @@ class PipePuzzle {
         
         if (allPowered && !hasIncorrect) {
             this.gameWon = true;
+            
+            // Check and update best score for this grid size
+            const currentBest = this.bestScores[this.gridSize];
+            if (currentBest === undefined || this.moveCount < currentBest) {
+                this.bestScores[this.gridSize] = this.moveCount;
+                this.saveBestScores();
+                this.updateBestScoreDisplay();
+            }
+            
             this.winMessage.classList.remove('hidden');
             this.finalMovesEl.textContent = this.moveCount;
             this.saveGame();
