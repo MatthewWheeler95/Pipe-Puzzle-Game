@@ -637,6 +637,10 @@ class PipePuzzle {
                     poweredCount++;
                 }
                 
+                if (this.gameWon) {
+                    tileDiv.classList.add('completed');
+                }
+                
                 if (tile.isSource) {
                     tileDiv.classList.add('source');
                 }
@@ -703,6 +707,7 @@ class PipePuzzle {
             
             this.winMessage.classList.remove('hidden');
             this.finalMovesEl.textContent = this.moveCount;
+            this.updateDisplay(); // Refresh display to show green background
             this.saveGame();
         }
     }
