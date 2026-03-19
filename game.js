@@ -19,6 +19,7 @@ class PipePuzzle {
         this.gameWon = false;
         this.lastClickedTile = null;
         this.bestScores = {}; // Stores best scores per grid size
+        this.tileSize = '60'; // Default tile size in pixels, or 'auto'
         
         this.initializeElements();
         this.loadBestScores();
@@ -53,6 +54,7 @@ class PipePuzzle {
         this.hideUnpoweredCheckbox = document.getElementById('hideUnpowered');
         this.wrapEdgesCheckbox = document.getElementById('wrapEdges');
         this.extraLoopsCheckbox = document.getElementById('extraLoops');
+        this.tileSizeSelect = document.getElementById('tileSize');
         this.winMessage = document.getElementById('winMessage');
         this.finalMovesEl = document.getElementById('finalMoves');
     }
@@ -77,6 +79,12 @@ class PipePuzzle {
         this.extraLoopsCheckbox.addEventListener('change', (e) => {
             this.extraLoops = e.target.checked;
         });
+        
+        this.tileSizeSelect.addEventListener('change', (e) => {
+            this.tileSize = e.target.value;
+            this.updateDisplay();
+            this.saveGame();
+        });
     }
     
     newGame() {
@@ -99,6 +107,7 @@ class PipePuzzle {
             hideUnpowered: this.hideUnpowered,
             wrapEdges: this.wrapEdges,
             extraLoops: this.extraLoops,
+            tileSize: this.tileSize,
             gameWon: this.gameWon,
             lastClickedTile: this.lastClickedTile
         };
@@ -124,6 +133,7 @@ class PipePuzzle {
             this.hideUnpowered = gameState.hideUnpowered;
             this.wrapEdges = gameState.wrapEdges;
             this.extraLoops = gameState.extraLoops;
+            this.tileSize = gameState.tileSize || '60';
             this.gameWon = gameState.gameWon || false;
             this.lastClickedTile = gameState.lastClickedTile || null;
             
@@ -133,6 +143,7 @@ class PipePuzzle {
             this.hideUnpoweredCheckbox.checked = this.hideUnpowered;
             this.wrapEdgesCheckbox.checked = this.wrapEdges;
             this.extraLoopsCheckbox.checked = this.extraLoops;
+            this.tileSizeSelect.value = this.tileSize;
             
             this.winMessage.classList.add('hidden');
             this.calculatePower();
@@ -620,7 +631,18 @@ class PipePuzzle {
     updateDisplay() {
         // Clear board
         this.gameBoard.innerHTML = '';
-        this.gameBoard.style.gridTemplateColumns = `repeat(${this.gridSize}, 60px)`;
+        
+        // Set CSS custom property for grid size (used in responsive calculations)
+        this.gameBoard.style.setProperty('--grid-cols', this.gridSize);
+        
+        // Set tile size based on user preference
+        if (this.tileSize === 'auto') {
+            this.gameBoard.style.gridTemplateColumns = `repeat(${this.gridSize}, auto)`;
+            this.gameBoard.classList.add('auto-size');
+        } else {
+            this.gameBoard.style.gridTemplateColumns = `repeat(${this.gridSize}, ${this.tileSize}px)`;
+            this.gameBoard.classList.remove('auto-size');
+        }
         
         let poweredCount = 0;
         let totalCount = this.gridSize * this.gridSize;
